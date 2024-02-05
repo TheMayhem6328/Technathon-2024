@@ -1,1 +1,1 @@
-import Q1 as Q1
+import Q1.retrieve_words as retrieve_words
