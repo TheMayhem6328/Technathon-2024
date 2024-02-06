@@ -4,6 +4,10 @@
         "reportMissingTypeStubs": "none",
         "reportUnusedImport": "none",
         "reportUnknownArgumentType": "none",
-        "reportUnknownMemberType": "none"
-    }
+        "reportUnknownMemberType": "none",
+        "reportUnknownVariableType": "none",
+    },
+    "python.analysis.exclude": [
+        ".venv"
+    ]
 }

@@ -16,7 +16,7 @@ chdir(dirname(__file__))
 
 
 # Function to retrieve top searches of a particular region
-def retrieve_search(country: tuple[str, str]) -> list[str]:
+def retrieve_search(country: tuple[str, str], verbose: bool = False) -> list[str]:
     """Retrieve trending search URIs for a particular region
 
     Args:
@@ -30,13 +30,15 @@ def retrieve_search(country: tuple[str, str]) -> list[str]:
     """
 
     # Notify user of country to be searched
-    print(f"Retrieving searches for {country[1]}\n", end="")
+    if verbose:
+        print(f"Retrieving searches for {country[1]}\n", end="")
 
     # Initialize `pytrends` object to retrieve Google Trends data
     try:
         pytrends: TrendReq = TrendReq(hl="en-US", tz=360)
     except (ConnectionError, ConnectTimeout, SSLError):
-        print("NETERROR")
+        if verbose:
+            print("ERROR: Unable to retrieve Google Trends data")
         return []
 
     # Retrieve URIs for today's trending search queries
@@ -57,7 +59,7 @@ def search_to_keyword(*args: tuple[str, str]) -> set[str]:
         `set[str]`: Contains extracted keywords
     """
 
-    # Concurrently lookup 
+    # Concurrently lookup
     thread_results = []
     with ThreadPoolExecutor(15) as thread:
         thread_results = thread.map(retrieve_search, args)
@@ -97,3 +99,38 @@ kw = search_to_keyword(
 )
 
 print(kw)
+
+
+def ensured_file(url: str, verbose: bool = False) -> bool:
+    # Extract filename from URL
+    name = url.split("/")[-1]
+
+    # Try to open file, or download if file does not exist
+    if exists("res\\" + name):
+        return True
+    else:
+        # Notify user that we're downloading a file
+        if verbose:
+            print("WARN: Downloading file " + name)
+
+        # Retrieve file
+        try:
+            contents: str = get(url).text
+        except (ConnectionError, ConnectTimeout, SSLError):
+            print("ERROR: Unable to retrieve " + name)
+            return False
+
+        # Save to file
+        if not exists("res\\" + name):
+            if not exists("res"):
+                mkdir("res")
+        with open("res\\" + name, "+wt", encoding="utf-8") as file:
+            file.write(contents)
+            return True
+
+
+print(
+    ensured_file(
+        "https://raw.githubusercontent.com/kkrypt0nn/wordlists/main/wordlists/languages/english.txt"
+    )
+)
