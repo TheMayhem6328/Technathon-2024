@@ -8,9 +8,6 @@ from urllib.parse import unquote
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 
-# Change path to script directory
-chdir(dirname(__file__))
-
 # Since we don't have a dictionary API at hand,
 # let's retrieve trending search queries from Google
 # then extract keywords from them queries
@@ -99,15 +96,43 @@ kw = search_to_keyword(
     ("HK", "Hong Kong"),
 )
 
-print(kw)
 
+def ensured_file(
+    url: str, dir: str = "", lock: Lock = Lock(), verbose: bool = False
+) -> bool:
+    """Checks whether a given file exists. If it doesn't,
+    save it to a `res` folder
 
-def ensured_file(url: str, lock: Lock, verbose: bool = False) -> bool:
+    Args:
+        `url` (`str`):
+            URL of the file to be ensured. Designed with
+            `raw.githubusercontent.com` links in mind
+        `dir` (`str`):
+            Subdirectory to store it in
+        `lock` (`Lock`):
+            A `threading.Lock` object which can be used
+            to ensure thread safety
+        `verbose` (`bool`, optional):
+            Whether to print out certain content for
+            debugging purposes. Defaults to False.
+
+    Returns:
+        `bool`:
+            Returns whether file presence was
+            successfully ensured or not
+    """
+    # Change path to script directory
+    chdir(dirname(__file__))
+
+    # Adjust `dir` parameter if non-empty
+    if dir != "":
+        dir += "\\"
+
     # Extract filename from URL
     name = url.split("/")[-1]
 
     # Try to open file, or download if file does not exist
-    if exists("res\\" + name):
+    if exists("res\\" + dir + name):
         return True
     else:
         # Notify user that we're downloading a file
@@ -123,19 +148,13 @@ def ensured_file(url: str, lock: Lock, verbose: bool = False) -> bool:
 
         # Make directory if it doesn't exist
         with lock:
-            if not exists("res\\" + name):
+            if not exists("res\\" + dir + name):
                 if not exists("res"):
                     mkdir("res")
+                if not exists("res\\"+dir.strip("\\")):
+                    mkdir("res\\"+dir.strip("\\"))
 
         # Save to file
-        with open("res\\" + name, "+wt", encoding="utf-8") as file:
+        with open("res\\" + dir + name, "+wt", encoding="utf-8") as file:
             file.write(contents)
             return True
-
-
-print(
-    ensured_file(
-        "https://raw.githubusercontent.com/kkrypt0nn/wordlists/main/wordlists/languages/english.txt",
-        Lock()
-    ),
-)
