@@ -6,6 +6,7 @@ from os import chdir, mkdir
 from os.path import exists, dirname
 from urllib.parse import unquote
 from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 
 # Change path to script directory
 chdir(dirname(__file__))
@@ -101,7 +102,7 @@ kw = search_to_keyword(
 print(kw)
 
 
-def ensured_file(url: str, verbose: bool = False) -> bool:
+def ensured_file(url: str, lock: Lock, verbose: bool = False) -> bool:
     # Extract filename from URL
     name = url.split("/")[-1]
 
@@ -120,10 +121,13 @@ def ensured_file(url: str, verbose: bool = False) -> bool:
             print("ERROR: Unable to retrieve " + name)
             return False
 
+        # Make directory if it doesn't exist
+        with lock:
+            if not exists("res\\" + name):
+                if not exists("res"):
+                    mkdir("res")
+
         # Save to file
-        if not exists("res\\" + name):
-            if not exists("res"):
-                mkdir("res")
         with open("res\\" + name, "+wt", encoding="utf-8") as file:
             file.write(contents)
             return True
@@ -131,6 +135,7 @@ def ensured_file(url: str, verbose: bool = False) -> bool:
 
 print(
     ensured_file(
-        "https://raw.githubusercontent.com/kkrypt0nn/wordlists/main/wordlists/languages/english.txt"
-    )
+        "https://raw.githubusercontent.com/kkrypt0nn/wordlists/main/wordlists/languages/english.txt",
+        Lock()
+    ),
 )
