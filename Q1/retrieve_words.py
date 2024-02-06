@@ -7,10 +7,7 @@ from os.path import exists, dirname
 from urllib.parse import unquote
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
-
-# Since we don't have a dictionary API at hand,
-# let's retrieve trending search queries from Google
-# then extract keywords from them queries
+import os
 
 
 # Function to retrieve top searches of a particular region
@@ -59,8 +56,8 @@ def search_to_keyword(*args: tuple[str, str]) -> set[str]:
 
     # Concurrently lookup
     thread_results = []
-    with ThreadPoolExecutor(15) as thread:
-        thread_results = thread.map(retrieve_search, args)
+    with ThreadPoolExecutor(15) as tpe:
+        thread_results = tpe.map(retrieve_search, args)
 
     # Unload the thread results to a singular list of URIs
     data: list[str] = []
@@ -97,7 +94,7 @@ kw = search_to_keyword(
 )
 
 
-def ensured_file(
+def ensure_file(
     url: str, dir: str = "", lock: Lock = Lock(), verbose: bool = False
 ) -> bool:
     """Checks whether a given file exists. If it doesn't,
@@ -137,13 +134,14 @@ def ensured_file(
     else:
         # Notify user that we're downloading a file
         if verbose:
-            print("WARN: Downloading file " + name)
+            print("WARN: Downloading file " + name + "\n", end="")
 
         # Retrieve file
         try:
             contents: str = get(url).text
         except (ConnectionError, ConnectTimeout, SSLError):
-            print("ERROR: Unable to retrieve " + name)
+            if verbose:
+                print("ERROR: Unable to retrieve " + name + "\n", end="")
             return False
 
         # Make directory if it doesn't exist
@@ -151,10 +149,51 @@ def ensured_file(
             if not exists("res\\" + dir + name):
                 if not exists("res"):
                     mkdir("res")
-                if not exists("res\\"+dir.strip("\\")):
-                    mkdir("res\\"+dir.strip("\\"))
+                if not exists("res\\" + dir.strip("\\")):
+                    mkdir("res\\" + dir.strip("\\"))
 
         # Save to file
         with open("res\\" + dir + name, "+wt", encoding="utf-8") as file:
             file.write(contents)
+            if verbose:
+                print("WARN: Successfully downloaded file " + name + "\n", end="")
             return True
+
+
+# Construct a list of URLs
+urls = {
+    f"https://raw.githubusercontent.com/kkrypt0nn/wordlists/main/wordlists/languages/{lang}.txt"
+    for lang in {
+        "arabic",
+        "croatian",
+        "czech",
+        "danish",
+        "dutch",
+        "english",
+        "french",
+        "georgian",
+        "german",
+        "hebrew",
+        "italian",
+        "norwegian",
+        "polish",
+        "portuguese",
+        "russian",
+        "serbian",
+        "spanish",
+        "swedish",
+        "turkish",
+        "ukrainian",
+    }
+}
+
+if __name__ == "__main__":
+    # Concurrently download given URLs
+    lock = Lock()
+    with ThreadPoolExecutor(10) as tpe:
+        for url in urls:
+            tpe.submit(ensure_file, url, "wordlist", lock)
+
+    for wordlist in {"res\\wordlist\\" + file for file in os.listdir("res\\wordlist")}:
+        with open(wordlist, encoding="utf-8") as file:
+            kw.update(set(file.read().split("\n")))
