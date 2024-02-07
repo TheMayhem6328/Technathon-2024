@@ -1,4 +1,19 @@
-def generate_triangle_pattern(n: int):
+def generate_triangle_pattern(n: int) -> list[str]:
+    """Generate a list of strings which adhere to
+    a specific sort of triangular number pattern
+
+    Args:
+        `n` (`int`):
+            Number of lines to generate
+
+    Returns:
+        `list[str]`:
+
+    """
+    
+    # Initialize a list to store lines
+    lines: list[str] = []
+
     # Loop `n` times
     #
     # The counters are offset by +1
@@ -13,10 +28,15 @@ def generate_triangle_pattern(n: int):
             # The numbers apparently adhere to the formula
             # `2*i*j`, where `i` is the line, and `j` is
             # the `j`th number being appended per line
-            line.append(2 * i * j)
-        # Print the list as a line
-        print(" ".join(line))  # type: ignore
+            line.append(str(2 * i * j))  # type: ignore[reportGeneralTypeIssues]
+        # Append generated line to list
+        lines.append(" ".join(line))  # type: ignore[reportGeneralTypeIssues]
+
+    # Return list of lines
+    return lines
+
 
 if __name__ == "__main__":
-    generate_triangle_pattern(2)
-    generate_triangle_pattern(5)
+    for n in (1, 3, 5, 9):
+        print(f"{n=}")
+        print(*generate_triangle_pattern(n), "\n", sep="\n")
