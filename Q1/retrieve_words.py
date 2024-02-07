@@ -7,7 +7,7 @@ from os.path import exists, dirname
 from urllib.parse import unquote
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
-
+from ahocorasick import Automaton
 
 class wordlist:
     """This encapsulates every tool necessary for wordlist generation
@@ -78,6 +78,10 @@ class wordlist:
         for wordlist in {"res\\wordlist\\" + file for file in listdir("res\\wordlist")}:
             with open(wordlist, encoding="utf-8") as file:
                 self.keywords.update(set(file.read().split("\n")))
+        
+        # Cleanup wordlist
+        if '' in self.keywords:
+            self.keywords.remove('')
 
     # Function to retrieve top searches of a particular region
     def retrieve_search(
@@ -213,9 +217,28 @@ class wordlist:
                 if verbose:
                     print("WARN: Successfully downloaded file " + name + "\n", end="")
                 return True
-
+            
+    def contains_from_wordlist(self, word: str):
+        # Build Aho-Corasick automation
+        automaton = Automaton()
+        for word in {'aaron', 'wau', 'bau'}:
+            automaton.add_word(word, word)
+        automaton.make_automaton()
+        
+    def common(self, word: str) -> set[str]:
+        # Build Aho-Corasick automation
+        automaton = Automaton()
+        for element in self.keywords:
+            automaton.add_word(element, element)
+        automaton.make_automaton()
+        
+        # Search using the Aho-Corasick algorithm
+        return set(automaton.iter(word))
+        
+        
     def __str__(self) -> str:
         return f"wordlist(len={len(self.keywords)})"
 
     def __len__(self) -> int:
         return len(self.keywords)
+
