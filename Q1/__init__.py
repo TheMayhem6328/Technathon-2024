@@ -17,7 +17,6 @@ def validate_wifi_password(password: str) -> bool:
     # Length check
 
     if len(password) < 12:
-        print("LENGTH")
         return False
 
     # Consequent check
@@ -103,16 +102,17 @@ def validate_wifi_password(password: str) -> bool:
     return True
 
 
-for password in [
-    "Vs@2Jdnw@i1oxna*@X",  # Valid,
-    "Vs@2J",  # Too small
-    "VsJdnwioxnaX",  # Contains neither numbers nor special
-    "VWX@2Jdnw@i1oxna*@X",  # Contains consequent characters
-    "aaron@2Jdnw@i1oxna*@X",  # Contains common dictionary word
-]:
-    valid = validate_wifi_password(password)
-    print(f"Password {password}: ", end="")
-    if valid:
-        print("Valid")
-    else:
-        print("Invalid")
+if __name__ == "__main__":
+    for password in [
+        "Vs@2Jdnw@i1oxna*@X",  # Valid,
+        "Vs@2J",  # Too small
+        "VsJdnwioxnaX",  # Contains neither numbers nor special
+        "VWX@2Jdnw@i1oxna*@X",  # Contains consequent characters
+        "aaron@2Jdnw@i1oxna*@X",  # Contains common dictionary word
+    ]:
+        valid = validate_wifi_password(password)
+        print(f"Password {password}: ", end="")
+        if valid:
+            print("Valid")
+        else:
+            print("Invalid")

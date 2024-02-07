@@ -28,5 +28,5 @@ def calc_color() -> int:
     # Return amount of boxes to color
     return min(n, m) * 4 - 3
 
-
-print("Boxes to colour: ", calc_color())
+if __name__ == "__main__":
+    print("Boxes to color: ", calc_color())
