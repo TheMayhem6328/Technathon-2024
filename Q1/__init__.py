@@ -1,16 +1,28 @@
 from retrieve_words import wordlist
-from re import search
 
 
 def validate_wifi_password(password: str) -> bool:
+    """Validate a password in respect to task rules
+    (including bonus criteria)
+
+    Args:
+        `password` (`str`):
+            The password to validate
+
+    Returns:
+        `bool`:
+            True if password is valid
+    """
+
     # Length check
 
     if len(password) < 12:
+        print("LENGTH")
         return False
 
     # Consequent check
 
-    for position in range(len(password) + 1):
+    for position in range(len(password)):
         # Get `n`th character of `password` and two more after it
         check: str = password[position : position + 3]
 
@@ -75,9 +87,32 @@ def validate_wifi_password(password: str) -> bool:
 
     # Dictionary check
 
-    common = wordlist().common(password)
-    if not common:
+    # Initialize wordlist object on global namespace
+    global my_wordlist
+    try:
+        type(my_wordlist)  # type: ignore
+    except NameError:
+        my_wordlist = wordlist()
+
+    # Perform check
+    common = my_wordlist.common(password)  # type: ignore
+    if not common == set():
         return False
 
     # If all checks pass, return True
     return True
+
+
+for password in [
+    "Vs@2Jdnw@i1oxna*@X",  # Valid,
+    "Vs@2J",  # Too small
+    "VsJdnwioxnaX",  # Contains neither numbers nor special
+    "VWX@2Jdnw@i1oxna*@X",  # Contains consequent characters
+    "aaron@2Jdnw@i1oxna*@X",  # Contains common dictionary word
+]:
+    valid = validate_wifi_password(password)
+    print(f"Password {password}: ", end="")
+    if valid:
+        print("Valid")
+    else:
+        print("Invalid")
